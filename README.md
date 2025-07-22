@@ -7,6 +7,7 @@ A personal boilerplate I built for myself to kickstart SaaS projects with robust
 ## ✨ Features
 
 - **Authentication**: Email/password & Google login via [Better Auth](https://github.com/better-auth/better-auth)
+- **Email Delivery**: Integrated with [Resend](https://resend.com/) for password reset and email confirmation flows
 - **Role-Based Protection**: Admin/user roles enforced on pages & APIs
 - **Payment-Based Protection**: Restrict features by payment type (subscription or one-time)
 - **Stripe Integration**: Supports subscriptions & one-time purchases
@@ -64,16 +65,66 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 ---
 
-## 💳 Stripe Payments
-- Supports both recurring subscriptions and one-time purchases.
-- Unified webhook endpoint for all payment events.
+## 🔑 Authentication & Email Flows
+
+This boilerplate provides a complete authentication system, tightly integrated with Better Auth and Resend for seamless user onboarding and security:
+
+- **Signup & Login**: Users can register and log in using email/password or Google OAuth.
+- **Email Verification**: Upon signup, users receive a verification email (sent via Resend) to confirm their email address before accessing protected features.
+- **Password Reset**: Users can request a password reset link, which is delivered to their email via Resend. The reset flow is secure and user-friendly.
+- **Google OAuth**: One-click login/signup with Google, managed by Better Auth.
+- **Session Management**: Secure session handling for all authentication methods.
+- **Email Templates**: Customizable, branded emails for verification and password reset, located in `components/auth/emails/`.
+- **Resend Integration**: All transactional emails (verification, password reset) are sent using Resend.
+
+**Example Flows:**
+- User signs up → Receives verification email → Clicks link → Gains access
+- User forgets password → Requests reset → Receives email → Resets password securely
 
 ---
 
-## 🔑 Authentication
-- Email/password signup & login
-- Google OAuth
-- Email verification & password reset
+## 🛡️ Protection Layers
+
+### 1. **Role-Based Page Protection**
+- Restrict pages to `admin` or `user` roles using server-side checks.
+- Example:
+
+```tsx
+// app/(admin)/admin/page.tsx
+import { requireAdmin } from "@/lib/admin";
+
+export default async function AdminPage() {
+  const session = await requireAdmin();
+  // ...
+}
+```
+
+### 2. **API Route Protection**
+- Restrict API endpoints by role or payment type.
+- Example:
+
+```ts
+// app/api/admin/status/route.ts
+const session = await auth.api.getSession({ headers: request.headers });
+if (!session?.user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+if (session.user.role !== "admin") return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+```
+
+### 3. **Payment Type Protection**
+- Restrict features or endpoints to users with active subscriptions or one-time purchases.
+- Example:
+
+```ts
+if (session.user.payment_type !== "subscription") {
+  return NextResponse.json({ error: "Subscription required" }, { status: 402 });
+}
+```
+
+---
+
+## 💳 Stripe Payments
+- Supports both recurring subscriptions and one-time purchases.
+- Unified webhook endpoint for all payment events.
 
 ---
 
@@ -102,5 +153,5 @@ Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 ## 📝 Notes
 - Built for my own SaaS projects, but feel free to use or adapt!
-- You’ll need to set up your own Stripe and Google OAuth credentials.
+- You’ll need to set up your own Stripe, Resend, and Google OAuth credentials.
 - See `.env.example` for required environment variables.
