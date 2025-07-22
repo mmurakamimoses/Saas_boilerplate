@@ -1,156 +1,106 @@
-# Better Auth Starter with Admin Protection
+# Saas Boilerplate – Role & Payment Protected Auth Starter
 
-![ChatGPT Image Jun 9, 2025, 07_09_10 PM](https://github.com/user-attachments/assets/660133ca-5463-4c77-9ece-37280caa229c)
+A personal boilerplate I built for myself to kickstart SaaS projects with robust authentication, role-based access, payment-based protection, and a modern landing page.
 
-## Overview
+---
 
-The Better Auth Starter is a complete authentication and authorization system using Next.js, Better Auth, Shadcn, Drizzle, and Neon. It includes comprehensive admin protection across multiple layers: server-side, client-side, and API protection.
+## ✨ Features
 
-## Features
+- **Authentication**: Email/password & Google login via [Better Auth](https://github.com/better-auth/better-auth)
+- **Role-Based Protection**: Admin/user roles enforced on pages & APIs
+- **Payment-Based Protection**: Restrict features by payment type (subscription or one-time)
+- **Stripe Integration**: Supports subscriptions & one-time purchases
+- **Admin Panel**: User management for admins
+- **Modern UI**: Shadcn UI, MagicUI, and a template landing page
+- **API Protection**: Authenticated & role/payment-guarded endpoints
 
-- 🔐 **Complete Authentication System** (Login, Signup, Email Verification, Password Reset)
-- 👑 **Multi-Layer Admin Protection** (Server-side, Client-side, API-level)
-- 🧪 **API Testing Components** to demonstrate protection levels
-- 📊 **User Management** for admins
-- 🎨 **Modern UI** with Shadcn components and dark mode support
+---
 
-## Getting Started
+## 🚀 Getting Started
 
-### Installation
-
-Install the required dependencies:
+### 1. Install Dependencies
 
 ```bash
-pnpm i
+pnpm install
 ```
 
+### 2. Database Setup
 
-### Database Setup
-
-Push the database schema:
+Push the schema to your database:
 
 ```bash
 npx drizzle-kit push
 ```
 
-### Seed Admin User
+### 3. Seed Admin User
 
-Create an admin user:
+Create a default admin user:
 
 ```bash
 pnpm run seed-db
 ```
 
-This creates an admin user with:
-- **Email**: `mmurakamimoses@gmail.com`
-- **Password**: `Mbasketball@1`
-- **Role**: `admin`
+### 4. Stripe Webhook Setup
 
-### Development Server
+For local development, forward Stripe events to your webhook endpoint:
 
-Start the development server:
+```bash
+stripe listen --forward-to localhost:3000/api/webhook
+```
+
+In production, set your Stripe webhook to:
+
+```
+https://yourdomain.com/api/webhook
+```
+
+### 5. Start the Dev Server
 
 ```bash
 pnpm dev
 ```
 
-### Stripe Webhook Setup
-
-#### Development & Production
-Use the unified webhook endpoint for both development and production:
-
-**Development:**
-```bash
-stripe listen --forward-to localhost:3000/api/webhook
-```
-
-**Production:**
-```
-https://yourdomain.com/api/webhook
-```
-
-This unified endpoint automatically routes:
-- Subscription events → Better Auth
-- Lifetime access events → Custom handler
-
-Open [http://localhost:3000](http://localhost:3000) to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to see the app.
 
 ---
 
-## Admin Protection System
+## 💳 Stripe Payments
+- Supports both recurring subscriptions and one-time purchases.
+- Unified webhook endpoint for all payment events.
 
-This starter includes a comprehensive 3-layer admin protection system.
+---
 
-### Protection Layers
+## 🔑 Authentication
+- Email/password signup & login
+- Google OAuth
+- Email verification & password reset
 
-#### 1. Server-Side Page Protection (Most Secure)
+---
 
-```tsx
-// app/admin/some-page/page.tsx
-import { requireAdmin } from "@/lib/admin";
+## 🏠 Template Landing Page
+- Modern, responsive landing page included for quick project launches.
 
-export default async function AdminPage() {
-  const session = await requireAdmin(); // Auto-redirects non-admins
-  
-  return (
-    <div>
-      <h1>Admin Content</h1>
-      <p>Welcome, {session.user.name}!</p>
-    </div>
-  );
-}
-```
+---
 
-#### 2. API Route Protection
+## 🛠️ Useful Commands
+- **Stripe Webhook (dev):** `stripe listen --forward-to localhost:3000/api/webhook`
+- **Seed Admin:** `pnpm run seed-db`
+- **Clear DB:** `pnpm run reset-db`
+- **Start Dev Server:** `pnpm dev`
 
-**Authenticated Users Only:**
-```tsx
-// app/api/user/profile/route.ts
-export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: request.headers });
+---
 
-  if (!session?.user) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
+## 📁 Project Structure (Highlights)
+- `app/` – Next.js app directory (routes, pages, API)
+- `components/` – UI and form components
+- `db/` – Drizzle ORM schema & config
+- `lib/` – Auth, access control, and utilities
+- `public/` – Static assets
+- `scripts/` – DB seeding/reset scripts
 
-  return NextResponse.json({ user: session.user });
-}
-```
+---
 
-**Admin Users Only:**
-```tsx
-// app/api/admin/status/route.ts
-export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: request.headers });
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-  }
-
-  if (session.user.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
-
-  return NextResponse.json({ admin: session.user });
-}
-```
-
-
-### Admin Plugin Features
-
-```tsx
-// List users
-const users = await authClient.admin.listUsers({
-  query: { limit: 10, offset: 0 }
-});
-
-// Check permissions
-const hasPermission = await authClient.admin.hasPermission({
-  permissions: { user: ["list"] }
-});
-
-// Get user sessions
-const sessions = await authClient.admin.listUserSessions({
-  userId: "user-id"
-});
-```
+## 📝 Notes
+- Built for my own SaaS projects, but feel free to use or adapt!
+- You’ll need to set up your own Stripe and Google OAuth credentials.
+- See `.env.example` for required environment variables.
