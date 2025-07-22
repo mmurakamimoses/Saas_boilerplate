@@ -1,0 +1,9 @@
+echo 'Running pre-commit checks...'
+
+pnpm lint ||
+(
+    echo "❌ Linting failed. Please fix the issues and try again.";
+    false;
+)
+
+echo '✅ All checks passed. Proceeding with commit...'
